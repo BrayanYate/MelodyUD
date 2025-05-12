@@ -8,7 +8,7 @@ Music streaming application.
 ### Workshop 1:
 Here is the specifications of the first workshop for Databases II course
 
-#### Index
+### Index
 
 #### Business Model Canvas
 
