@@ -1,0 +1,137 @@
+%% This ER diagram represents the database schema for the music streaming platform MelodyUD.
+%% It includes entities such as USER, ARTIST, ALBUM, TRACK, PLAYLIST, and others,
+%% along with their relationships and attributes.
+
+%% Relationships:
+%% - USER has multiple SUBSCRIPTIONS, owns multiple PLAYLISTS, curates PLAYLIST_TRACKS,
+%%   follows other USERS, generates PLAY_EVENTS, stores PAYMENT_METHODS, and makes PAYMENT_TRANSACTIONS.
+%% - ARTIST creates multiple ALBUMS and produces multiple TRACKS.
+%% - ALBUM contains multiple TRACKS.
+%% - PLAYLIST contains multiple PLAYLIST_TRACKS.
+%% - TRACK is associated with PLAYLIST_TRACKS and is played in PLAY_EVENTS.
+%% - ADVERTISER runs multiple AD_CAMPAIGNS.
+%% - AD_CAMPAIGN delivers multiple AD_IMPRESSIONS.
+%% - USER hears multiple AD_IMPRESSIONS.
+
+%% Entity Definitions:
+%% - USER: Represents a user of the platform with attributes such as user_id (PK), email, tier, and created_at.
+%% - SUBSCRIPTION: Tracks user subscriptions with attributes like sub_id (PK), user_id (FK), plan_type, status, start_at, and end_at.
+%% - ARTIST: Represents an artist with attributes such as artist_id (PK), name, and country.
+%% - ALBUM: Represents an album with attributes like album_id (PK), artist_id (FK), title, and release_date.
+%% - TRACK: Represents a track with attributes such as track_id (PK), album_id (FK), artist_id (FK), title, duration_sec, and explicit.
+%% - PLAYLIST: Represents a playlist with attributes like playlist_id (PK), owner_id (FK), name, and description.
+%% - PLAYLIST_TRACK: Links playlists and tracks with attributes such as playlist_id (FK), track_id (FK), and position.
+%% - FOLLOW: Tracks user follow relationships with attributes like follower_id (FK), followed_id (FK), and since.
+%% - PLAY_EVENT: Logs track play events with attributes such as event_id (PK), user_id (FK), track_id (FK), and played_at.
+%% - PAYMENT_METHOD: Stores user payment methods with attributes like payment_id (PK), user_id (FK), token, and brand.
+%% - PAYMENT_TRANSACTION: Logs payment transactions with attributes such as txn_id (PK), user_id (FK), amount, and paid_at.
+%% - ADVERTISER: Represents an advertiser with attributes like adv_id (PK) and name.
+%% - AD_CAMPAIGN: Represents an ad campaign with attributes such as campaign_id (PK), adv_id (FK), target_segment, start_date, end_date, and budget.
+%% - AD_IMPRESSION: Logs ad impressions with attributes like imp_id (PK), campaign_id (FK), user_id (FK), and shown_at.
+erDiagram
+    USER ||--o{ SUBSCRIPTION : has
+    USER ||--o{ PLAYLIST : owns
+    USER ||--o{ PLAYLIST_TRACK : "curates"
+    USER ||--o{ FOLLOW : follows
+    USER ||--o{ PLAY_EVENT : generates
+    USER ||--o{ PAYMENT_METHOD : "stores"
+    USER ||--o{ PAYMENT_TRANSACTION : "makes"
+
+    ARTIST ||--o{ ALBUM : creates
+    ARTIST ||--o{ TRACK : produces
+    ALBUM  ||--o{ TRACK : contains
+
+    PLAYLIST ||--o{ PLAYLIST_TRACK : contains
+    TRACK ||--o{ PLAYLIST_TRACK : entry
+    TRACK ||--o{ PLAY_EVENT : is_played
+
+    ADVERTISER ||--o{ AD_CAMPAIGN : runs
+    AD_CAMPAIGN ||--o{ AD_IMPRESSION : delivers
+    USER ||--o{ AD_IMPRESSION : hears
+
+    %% Entity definitions
+    USER {
+      bigint user_id PK
+      string email
+      string tier "free|premium"
+      timestamptz created_at
+    }
+    SUBSCRIPTION {
+      bigint sub_id PK
+      bigint user_id FK
+      string plan_type
+      string status
+      timestamptz start_at
+      timestamptz end_at
+    }
+    ARTIST {
+      bigint artist_id PK
+      string name
+      string country
+    }
+    ALBUM {
+      bigint album_id PK
+      bigint artist_id FK
+      string title
+      date release_date
+    }
+    TRACK {
+      bigint track_id PK
+      bigint album_id FK
+      bigint artist_id FK
+      string title
+      int    duration_sec
+      boolean explicit
+    }
+    PLAYLIST {
+      bigint playlist_id PK
+      bigint owner_id FK
+      string name
+      text   description
+    }
+    PLAYLIST_TRACK {
+      bigint playlist_id FK
+      bigint track_id FK
+      int    position
+    }
+    FOLLOW {
+      bigint follower_id FK
+      bigint followed_id FK
+      timestamptz since
+    }
+    PLAY_EVENT {
+      bigint event_id PK
+      bigint user_id FK
+      bigint track_id FK
+      timestamptz played_at
+    }
+    PAYMENT_METHOD {
+      bigint payment_id PK
+      bigint user_id FK
+      string token
+      string brand
+    }
+    PAYMENT_TRANSACTION {
+      bigint txn_id PK
+      bigint user_id FK
+      numeric amount
+      timestamptz paid_at
+    }
+    ADVERTISER {
+      bigint adv_id PK
+      string name
+    }
+    AD_CAMPAIGN {
+      bigint campaign_id PK
+      bigint adv_id FK
+      string target_segment
+      date   start_date
+      date   end_date
+      numeric budget
+    }
+    AD_IMPRESSION {
+      bigint imp_id PK
+      bigint campaign_id FK
+      bigint user_id FK
+      timestamptz shown_at
+    }
