@@ -1,0 +1,110 @@
+%% MelodyUD Architecture Diagram
+%% This diagram shows the main components and data flows of the system.
+%% Components are grouped by function for clarity.
+
+flowchart LR
+    %% Client Applications
+    %% A1: Mobile/Web
+    %% A2: Smart Speakers/TV
+    subgraph CLIENT["Client Apps"]
+        A1[Mobile/Web]
+        A2[Smart Speakers/TV]
+    end
+
+    %% B1: NGINX Ingress (K8s)
+    %% B2: Keycloak (OAuth 2.0)
+    subgraph API["API Edge"]
+        B1[NGINX Ingress<br/>K8s]
+        B2[Keycloak<br/>OAuth 2.0]
+    end
+
+    %% C1: User-Billing Service
+    %% C2: Catalog Service
+    %% C3: Playback & Session
+    %% C4: Search & Recs
+    %% C5: Ads Service
+    subgraph CORE["Core Services"]
+        C1[User-Billing<br/>Service]
+        C2[Catalog Service]
+        C3[Playback & Session]
+        C4[Search & Recs]
+        C5[Ads Service]
+    end
+
+    %% D1: PostgreSQL 16 + Pg_partman
+    subgraph DB["Operational DB"]
+        D1[(PostgreSQL 16<br/>+ Pg_partman)]
+    end
+
+    %% D2: Opensearch
+    subgraph SEARCH["Search Index"]
+        D2[(Opensearch)]
+    end
+
+    %% D3: MinIO
+    subgraph OBJ["Object Store"]
+        D3[(MinIO)]
+    end
+
+    %% E1: Apache Kafka
+    subgraph STREAM["Event Stream"]
+        E1[(Apache Kafka)]
+    end
+
+    %% F1: ClickHouse
+    %% F2: Apache Superset
+    subgraph ANALYTICS["Analytics"]
+        F1[(ClickHouse)]
+        F2[Apache Superset]
+    end
+
+    %% G1: Apache Airflow
+    subgraph ETL["ETL / Orchestration"]
+        G1[Apache Airflow]
+    end
+
+    %% Flows
+    %% A1/A2 to B1: Client to API
+    A1 & A2 -- "HTTPS/REST" --> B1
+    %% B1 to B2: API Edge Auth
+    B1 --> B2
+    %% B1 to C1: API to User-Billing
+    B1 --> C1
+    %% B1 to C2: API to Catalog
+    B1 --> C2
+    %% B1 to C3: API to Playback & Session
+    B1 --> C3
+    %% B1 to C4: API to Search & Recs
+    B1 --> C4
+    %% B1 to C5: API to Ads
+    B1 --> C5
+
+    %% C1/C2/C3/C4/C5 to D1: Core to Operational DB
+    C1 --> D1
+    C2 --> D1
+    C3 --> D1
+    C4 --> D1
+    C5 --> D1
+
+    %% C2 to D2: Catalog to Search Index
+    C2 --> D2
+    %% C3 to D3: Playback to Object Store
+    C3 -- "signed URL" --> D3
+
+    %% C1/C2/C3/C4/C5 to E1: Core to Event Stream
+    C1 -- "events" --> E1
+    C2 -- "events" --> E1
+    C3 -- "events" --> E1
+    C4 -- "events" --> E1
+    C5 -- "events" --> E1
+
+    %% E1 to F1: Event Stream to Analytics DB
+    E1 --> F1
+
+    %% G1 to D1/D2/F1: ETL to DB, Search, Analytics
+    G1 --> D1
+    G1 --> D2
+    G1 --> F1
+
+    %% F1 to F2: Analytics to Visualization
+    F1 --> F2

@@ -1,0 +1,153 @@
+erDiagram
+%% ─── USER & SUBSCRIPTION DOMAIN ───────────────────────────────────
+    USER {
+        bigint  user_id PK
+        varchar email
+        varchar display_name
+        varchar tier        "free | premium"
+        timestamptz created_at
+    }
+
+    SUBSCRIPTION {
+        bigint  sub_id PK
+        bigint  user_id FK
+        varchar plan_type   "premium | family | student"
+        varchar status      "active | cancelled"
+        timestamptz start_at
+        timestamptz end_at
+    }
+
+    PAYMENT_METHOD {
+        bigint  payment_id PK
+        bigint  user_id FK
+        varchar token          "PCI-tokenised"
+        varchar brand          "visa / mc / amex"
+        timestamptz added_at
+    }
+
+    PAYMENT_TRANSACTION {
+        bigint  txn_id PK
+        bigint  user_id FK
+        numeric amount
+        timestamptz paid_at
+    }
+
+%% ─── CATALOG DOMAIN ──────────────────────────────────────────────
+    ARTIST {
+        bigint  artist_id PK
+        varchar name
+        varchar country
+    }
+
+    ALBUM {
+        bigint  album_id PK
+        bigint  artist_id FK
+        varchar title
+        date    release_date
+    }
+
+    TRACK {
+        bigint  track_id PK
+        bigint  album_id  FK
+        bigint  artist_id FK
+        varchar title
+        int     duration_sec
+        boolean explicit
+        bigint  play_count   "denormalised for OpenSearch boost"
+    }
+
+%% ─── PLAYLIST & SOCIAL DOMAIN ────────────────────────────────────
+    PLAYLIST {
+        bigint  playlist_id PK
+        bigint  owner_id FK  "User who owns/created the playlist"
+        varchar name
+        text    description
+        boolean collaborative
+        timestamptz created_at
+    }
+
+    %% Bridge: many-to-many between Playlist and Track
+    PLAYLIST_TRACK {
+        bigint playlist_id FK
+        bigint track_id    FK
+        int     position      "1-based order"
+    }
+
+    %% Bridge: User follows User (social graph)
+    USER_FOLLOW {
+        bigint follower_id FK
+        bigint followed_id FK
+        timestamptz since
+    }
+
+%% ─── PLAYBACK & EVENTS DOMAIN ────────────────────────────────────
+    PLAY_EVENT {
+        bigint  event_id PK
+        bigint  user_id  FK
+        bigint  track_id FK
+        varchar country
+        int     duration_sec
+        timestamptz played_at
+    }
+
+%% ─── ADS & CAMPAIGN DOMAIN ───────────────────────────────────────
+    ADVERTISER {
+        bigint  adv_id PK
+        varchar name
+    }
+
+    AD_CAMPAIGN {
+        bigint  campaign_id PK
+        bigint  adv_id      FK
+        varchar campaign_type  "promotional | brand"
+        date    start_date
+        date    end_date
+        numeric budget
+    }
+
+    %% Fact/bridge: which user heard which campaign impression
+    AD_IMPRESSION {
+        bigint  imp_id PK
+        bigint  campaign_id FK
+        bigint  user_id     FK
+        timestamptz shown_at
+    }
+
+%% ─── ROYALTY & FINANCE DOMAIN ────────────────────────────────────
+    ROYALTY_RATE {
+        varchar country PK
+        bigint  artist_id PK
+        numeric rate        "per-stream local rate"
+    }
+
+    ARTIST_PAYOUT {
+        bigint  payout_id PK
+        bigint  artist_id FK
+        numeric amount
+        date    period_month   "e.g., 2025-05-01"
+        timestamptz paid_at
+    }
+
+%% ─── RELATIONSHIPS (1:M and M:N via bridges) ─────────────────────
+    USER          ||--o{ SUBSCRIPTION      : has
+    USER          ||--o{ PAYMENT_METHOD    : stores
+    USER          ||--o{ PAYMENT_TRANSACTION: makes
+    USER          ||--o{ PLAYLIST          : owns
+    USER          ||--o{ PLAY_EVENT        : generates
+    USER          ||--o{ AD_IMPRESSION     : hears
+    USER          ||--o{ USER_FOLLOW       : follows
+    USER          ||--o{ USER_FOLLOW       : followed_by
+
+    ARTIST        ||--o{ ALBUM             : creates
+    ARTIST        ||--o{ TRACK             : produces
+    ARTIST        ||--o{ ROYALTY_RATE      : earns
+    ARTIST        ||--o{ ARTIST_PAYOUT     : paid_to
+
+    ALBUM         ||--o{ TRACK             : contains
+
+    PLAYLIST      ||--o{ PLAYLIST_TRACK    : includes
+    TRACK         ||--o{ PLAYLIST_TRACK    : appears_in
+    TRACK         ||--o{ PLAY_EVENT        : is_played
+
+    ADVERTISER    ||--o{ AD_CAMPAIGN       : runs
+    AD_CAMPAIGN   ||--o{ AD_IMPRESSION     : delivers
