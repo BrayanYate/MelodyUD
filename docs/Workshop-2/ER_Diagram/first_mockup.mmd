@@ -1,0 +1,9 @@
+erDiagram
+  USER ||--|| SUBSCRIPTION : has
+  USER ||--o{ PLAYLIST : creates
+  USER ||--o{ PLAY_EVENT : streams
+  PLAYLIST }o--o{ TRACK : "m:n"
+  USER }o--o{ TRACK : "m:n via play"
+  USER }o--o{ ARTIST : "m:n via follow"
+  ARTIST ||--o{ ALBUM : produces
+  ALBUM ||--o{ TRACK : contains

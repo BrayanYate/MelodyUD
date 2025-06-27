@@ -1,0 +1,17 @@
+erDiagram
+  USER ||--o{ SUBSCRIPTION : owns
+  USER ||--o{ PLAYLIST : creates
+  PLAYLIST ||--o{ PLAYLIST_TRACK : "1:n"
+  TRACK ||--o{ PLAYLIST_TRACK : "1:n"
+  USER ||--o{ PLAY_EVENT : streams
+  TRACK ||--o{ PLAY_EVENT : "has"
+  USER ||--o{ FOLLOW : follows
+  FOLLOW }o--|| USER : ""
+  FOLLOW }o--|| ARTIST : ""
+  ARTIST ||--o{ ALBUM : produces
+  ALBUM ||--o{ TRACK : contains
+  USER ||--o{ PAYMENT_TRANSACTION : pays
+  PAYMENT_TRANSACTION }o--|| SUBSCRIPTION : covers
+  ADVERTISER ||--o{ AD_CAMPAIGN : runs
+  AD_CAMPAIGN ||--o{ AD_IMPRESSION : generates
+  AD_IMPRESSION }o--|| PLAY_EVENT : on
