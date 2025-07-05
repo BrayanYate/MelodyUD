@@ -1,6 +1,3 @@
-Aquí tienes el código completo para el README.md del Workshop 3, listo para copiar y pegar en GitHub:
-
-```markdown
 # 🎵 MelodyUD - Advanced Music Streaming Architecture
 
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-%23316192?logo=postgresql)
