@@ -1,0 +1,32 @@
+flowchart LR
+    subgraph Region_A
+        API_GW_A[API Gateway]
+        App_A[App Service Pods]
+        QR_A(Query Router)
+        C1A[(Coordinator)]
+        W1A[[Worker Shard 1<br>Primary + Replicas]]
+        W2A[[Worker Shard 2<br>Primary + Replicas]]
+        API_GW_A --> App_A --> QR_A
+        QR_A --> C1A
+        C1A --> W1A
+        C1A --> W2A
+    end
+
+    subgraph Region_B
+        API_GW_B[API Gateway]
+        App_B[App Service Pods]
+        QR_B(Query Router)
+        C1B[(Coordinator)]
+        W1B[[Worker Shard 1<br>Primary + Replicas]]
+        W2B[[Worker Shard 2<br>Primary + Replicas]]
+        API_GW_B --> App_B --> QR_B
+        QR_B --> C1B
+        C1B --> W1B
+        C1B --> W2B
+    end
+
+    W1A -- logical replication --> W1B
+    W2A -- logical replication --> W2B
+
+    classDef cluster fill:#eef,stroke:#99c,stroke-width:1px
+    class Region_A,Region_B cluster

@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant Service
+    participant Router
+    participant Coord as Coordinator
+    participant W1 as Worker Shard A
+    participant W2 as Worker Shard B
+
+    Service->>Router: SELECT * FROM play_events WHERE user_id = 123;
+    Router->>Coord: Rewrite as distributed query
+    Coord->>W1: Sub-query 1
+    Coord->>W2: Sub-query 2
+    par Parallel scan
+        W1-->>Coord: rows for 123
+        W2-->>Coord: rows for 123
+    end
+    Coord->>Router: Merged result set
+    Router->>Service: Streamed rows
